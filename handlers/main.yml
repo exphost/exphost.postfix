@@ -1,0 +1,9 @@
+---
+- name: restart postfix
+  service:
+    name: postfix
+    state: restarted
+  become: true
+- name: postmap
+  shell: "/usr/sbin/postmap /etc/postfix/db/*.hash"
+  become: true

@@ -1,0 +1,19 @@
+apps_named:
+  named:
+    priority: 2
+    named:
+      type: exphost.named
+      enabled: True
+      configs:
+        forwarders:
+          - 192.168.0.1
+        listen:
+          ipv4:
+            ports:
+              53:
+                addresses:
+                  - any
+        zones:
+          some.example.domain.xyz:
+            type: master
+            map_inventory: true

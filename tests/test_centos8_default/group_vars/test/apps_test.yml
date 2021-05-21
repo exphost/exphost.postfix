@@ -1,0 +1,25 @@
+apps_postfix:
+  postfix:
+    postfix:
+      enabled: True
+      type: exphost.postfix
+      install: standalone
+      configs:
+        vmailbox:
+          home: /var/lib/postfix/vmail
+          domains:
+            domena1.ru:
+              users:
+                - bartek
+                - krzys
+                - zosia
+              aliases:
+                - from: krzysiek
+                  to:
+                    - krzys
+                    - wojtek@domena2.ru
+                - to: 
+                    - bartek
+            domena2.ru:
+              users:
+                - wojtek

@@ -1,0 +1,76 @@
+---
+- name: debug
+  debug:
+    msg: "Jeste postfixe standalone"
+- block:
+    - name: install postfix
+      yum:
+        name: postfix
+        state: installed
+
+    - name: get postfix user info
+      getent:
+        database: passwd
+        key: postfix
+    - name: set _postfix_user variable
+      set_fact:
+        _postfix_user: "{{ getent_passwd['postfix'] }}"
+
+    - block:
+        - name: create vmaildir
+          file:
+            path: "/var/lib/vmail/{{ item }}"
+            state: directory
+            owner: postfix
+            group: postfix
+            mode: 0700
+            # setype: postfix_virtual_t
+          loop: "{{ app.value.postfix.configs.vmailbox.domains|default({})|list }}"
+        - name: create db dir
+          file:
+            path: /etc/postfix/db
+            state: directory
+            owner: root
+            group: root
+            mode: 0755
+        - name: create users
+          template:
+            dest: "/etc/postfix/db/{{ domain.key }}.hash"
+            src: "vmailbox"
+            owner: root
+            group: root
+            mode: 0755
+          loop: "{{ app.value.postfix.configs.vmailbox.domains|default({})|dict2items }}"
+          loop_control:
+            loop_var: domain
+          notify: postmap
+        - name: create aliases
+          template:
+            dest: "/etc/postfix/db/alias_{{ domain.key }}.hash"
+            src: "virtual"
+            owner: root
+            group: root
+            mode: 0755
+          loop: "{{ app.value.postfix.configs.vmailbox.domains|default({})|dict2items }}"
+          loop_control:
+            loop_var: domain
+          when: domain.value.aliases | default(False)
+          notify: postmap
+      when: app.value.postfix.configs.vmailbox|default(False)
+    - meta: flush_handlers
+
+    - name: copy config
+      template:
+        src: main.cf
+        dest: /etc/postfix/main.cf
+        mode: 0640
+      notify:
+        - restart postfix
+    - meta: flush_handlers
+    - name: start and enable postfix
+      service:
+        name: postfix
+        state: started
+        enabled: true
+  become: true
+  become_user: root

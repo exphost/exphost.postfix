@@ -1,0 +1,4 @@
+{% for alias in domain.value.aliases %}
+{{ alias.from|default("") }}@{{ domain.key }} {% for forward_to in alias.to %} {{ forward_to }}{% if '@' not in forward_to %}@{{ domain.key }}{% endif %} {% endfor %}
+
+{% endfor %}
