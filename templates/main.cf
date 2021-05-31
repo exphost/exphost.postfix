@@ -39,7 +39,7 @@ shlib_directory = /usr/lib64/postfix
 inet_interfaces = all
 {% if app.value.postfix.configs.vmailbox|default(False) %}
 virtual_mailbox_domains = {{ app.value.postfix.configs.vmailbox.domains|join(' ') }}
-virtual_mailbox_base = {{ app.value.postfix.configs.vmailbox.home }}
+virtual_mailbox_base = /var/lib/vmail
 virtual_mailbox_maps = {% for domain in app.value.postfix.configs.vmailbox.domains %} hash:/etc/postfix/db/{{ domain}}.hash {% endfor %}
 
 virtual_minimum_uid= 1
@@ -47,3 +47,7 @@ virtual_uid_maps = static:{{ _postfix_user[1] }}
 virtual_gid_maps = static:{{ _postfix_user[2] }}
 virtual_alias_maps = {% for domain in app.value.postfix.configs.vmailbox.domains|dict2items|selectattr('value.aliases','defined')|map(attribute='key')|list %} hash:/etc/postfix/db/alias_{{ domain}}.hash {% endfor %}
 {% endif %}
+
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_type = cyrus
+smtpd_sasl_path = smtpd

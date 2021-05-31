@@ -1,3 +1,3 @@
 {% for user in domain.value.users %}
-{{ user }}@{{ domain.key }} {{domain.key}}/{{user}}
+{{ user.username }}@{{ domain.key }} {{domain.key}}/{{user.username}}/
 {% endfor %}

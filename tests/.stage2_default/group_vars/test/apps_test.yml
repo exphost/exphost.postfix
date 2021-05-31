@@ -6,13 +6,15 @@ apps_postfix:
       install: standalone
       configs:
         vmailbox:
-          home: /var/lib/postfix/vmail
           domains:
             domena1.ru:
               users:
-                - bartek
-                - krzys
-                - zosia
+                - username: bartek
+                - username: krzys
+                  password: krzyspass
+                  allowed_addresses:
+                    - sales@domena1.ru
+                - username: zosia
               aliases:
                 - from: krzysiek
                   to:
@@ -22,4 +24,5 @@ apps_postfix:
                     - bartek
             domena2.ru:
               users:
-                - wojtek
+                - username: wojtek
+                  password: wojtekpass

@@ -8,6 +8,11 @@
         name: postfix
         state: installed
 
+    - name: install sasl
+      yum:
+        name: cyrus-sasl-plain
+        state: installed
+
     - name: get postfix user info
       getent:
         database: passwd
@@ -25,6 +30,7 @@
             group: postfix
             mode: 0700
             # setype: postfix_virtual_t
+            setype: mail_spool_t
           loop: "{{ app.value.postfix.configs.vmailbox.domains|default({})|list }}"
         - name: create db dir
           file:
@@ -33,7 +39,7 @@
             owner: root
             group: root
             mode: 0755
-        - name: create users
+        - name: create virtual mailboxes
           template:
             dest: "/etc/postfix/db/{{ domain.key }}.hash"
             src: "vmailbox"
@@ -56,6 +62,37 @@
             loop_var: domain
           when: domain.value.aliases | default(False)
           notify: postmap
+        - name: copy sasl2/smtpd.conf
+          template:
+            dest: /etc/sasl2/smtpd.conf
+            src: sasl2_smtpd.conf
+            owner: root
+            group: root
+            mode: 0644
+        - name: create local users
+          vars:
+            _domains: "{{ apps_postfix.postfix.postfix.configs.vmailbox.domains|dict2items }}"
+          sasluser:
+            username: "{{ user.1.username }}@{{ user.0.key }}"
+            password: "{{ user.1.password }}"
+          loop: "{{ q('subelements', _domains, 'value.users', {'skip_missing': True}) }}"
+          loop_control:
+            loop_var: user
+          when: user.1.password|default(False)
+
+        - name: stat sasldb2
+          stat:
+            path: /etc/sasldb2
+          register: _sasldb2
+
+        - name: set sasldb permissions
+          file:
+            state: file
+            path: /etc/sasldb2
+            owner: postfix
+            group: postfix
+          when: _sasldb2.stat.exists
+
       when: app.value.postfix.configs.vmailbox|default(False)
     - meta: flush_handlers
 

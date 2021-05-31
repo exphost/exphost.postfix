@@ -1,4 +1,5 @@
 import re
+import time
 def install_nc(host):
     host.ansible(
       "command",
@@ -6,6 +7,24 @@ def install_nc(host):
       become=True,
       check=False,
     )
+
+def check_mail_existance(host, path, msg_id):
+    delivered = False
+    retries = 10
+    while not delivered:
+        retries -= 1
+        try:
+            assert host.ansible(
+              "command",
+              """grep "with SMTP id {}$" {} -r -q""".format(msg_id, path),
+              become=True,
+              check=False,
+            )['rc'] == 0
+            delivered = True
+        except:
+            if retries < 0:
+                raise
+            time.sleep(1)
 
 def test_postfix_running(host):
   assert host.service("postfix").is_running
@@ -20,9 +39,8 @@ def test_postfix_local_email_delivery(host):
     install_nc(host)
     resp = host.check_output("""echo -e "helo ja\nMAIL FROM: test@exphost.pl\nRCPT TO: krzys@domena1.ru\nDATA\nhejo\n.\nquit\n" | nc localhost 25""")
     assert "queued as" in resp
-    mail_id = resp.split()[-1]
-    assert host.run("""grep "with SMTP id {}$" /var/lib/vmail/domena1.ru/krzys/ -r -q""".format(mail_id))
-
+    mail_id = resp.split()[-4] #Hardcoded message id
+    check_mail_existance(host, "/var/lib/vmail/domena1.ru/krzys/", mail_id)
 
 def test_postfix_vmail_dir_permissions(host):
     f = host.file("/var/lib/vmail")
@@ -33,15 +51,15 @@ def test_postfix_alias_delivery(host):
     install_nc(host)
     resp = host.check_output("""echo -e "helo ja\nMAIL FROM: test@exphost.pl\nRCPT TO: krzysiek@domena1.ru\nDATA\nhejo\n.\nquit\n" | nc localhost 25""")
     assert "queued as" in resp
-    mail_id = resp.split()[-1]
-    assert host.run("""grep "with SMTP id {}$" /var/lib/vmail/domena1.ru/krzys/ -r -q""".format(mail_id))
+    mail_id = resp.split()[-4]
+    check_mail_existance(host, "/var/lib/vmail/domena1.ru/krzys/", mail_id)
 
 def test_postfix_catch_all_alias_delivery(host):
     install_nc(host)
     resp = host.check_output("""echo -e "helo ja\nMAIL FROM: test@exphost.pl\nRCPT TO: catch-all-random@domena1.ru\nDATA\nhejo\n.\nquit\n" | nc localhost 25""")
     assert "queued as" in resp
-    mail_id = resp.split()[-1]
-    assert host.run("""grep "with SMTP id {}$" /var/lib/vmail/domena1.ru/bartek/ -r -q""".format(mail_id))
+    mail_id = resp.split()[-4]
+    check_mail_existance(host, "/var/lib/vmail/domena1.ru/bartek/", mail_id)
 
 
 #def test_local_email_send(host):
