@@ -51,3 +51,9 @@ virtual_alias_maps = {% for domain in app.value.postfix.configs.vmailbox.domains
 smtpd_sasl_auth_enable = yes
 smtpd_sasl_type = cyrus
 smtpd_sasl_path = smtpd
+
+{% if app.value.postfix.configs.ssl|default(False) %}
+smtpd_tls_cert_file = {{ app.value.postfix.configs.ssl.cert }}
+smtpd_tls_key_file = {{ app.value.postfix.configs.ssl.key }}
+smtpd_tls_auth_only = yes
+{% endif %}

@@ -1,0 +1,24 @@
+apps_postfix_ssl:
+  postfix:
+    postfix:
+      configs:
+        ssl:
+          cert: /etc/postfix/ssl/fullchain.pem
+          key: /etc/postfix/ssl/privkey.pem
+      ssls:
+        - domains:
+          - ca.some.domain.xyz
+          keyserver: client-0
+          dest:
+            dir: /etc/ssl/generated/ca
+          provider:
+            type: selfsigned
+          ca: True
+        - domains:
+          - postfix.some.domain.xyz
+          keyserver: client-0
+          dest:
+            dir: /etc/postfix/ssl
+          provider:
+            type: ownca
+            ca: ca.some.domain.xyz

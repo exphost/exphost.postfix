@@ -17,3 +17,9 @@ galaxy_info:
     - mail
 
 allow_duplicates: true
+dependencies:
+  - role: exphost.ssl_generator
+    vars:
+      ssls: "{{ app.value.postfix.ssls }}"
+      user: "{{ app.value.postfix.user | default({}) }}"
+    when: app.value.postfix.ssls | default(False)
