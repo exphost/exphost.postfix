@@ -38,7 +38,12 @@ inet_interfaces = all
 {% if app.value.postfix.configs.vmailbox|default(False) %}
 virtual_mailbox_domains = {{ app.value.postfix.configs.vmailbox.domains|join(' ') }}
 virtual_mailbox_base = /var/lib/vmail
-virtual_mailbox_maps = {% for domain in app.value.postfix.configs.vmailbox.domains %} hash:/etc/postfix/db/{{ domain}}.hash {% endfor %}
+virtual_mailbox_maps = {% for domain in app.value.postfix.configs.vmailbox.domains %}
+hash:/etc/postfix/db/{{ domain}}.hash {{ " " -}}
+{% endfor -%}
+{% for ldap in app.value.postfix.configs.ldap | default({}) |list %}
+ldap:/etc/postfix/db/ldap_{{ ldap }}.cf {{ " " -}}
+{% endfor %}
 
 virtual_minimum_uid= 1
 virtual_uid_maps = static:{{ _postfix_user[1] }}

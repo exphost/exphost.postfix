@@ -5,13 +5,17 @@
 - block:
     - name: install postfix
       yum:
-        name: postfix
+        name:
+          - postfix
+          - cyrus-sasl-plain
         state: installed
 
-    - name: install sasl
+    - name: install postfix-ldap on rhel 8
       yum:
-        name: cyrus-sasl-plain
+        name:
+          - postfix-ldap
         state: installed
+      when: ansible_distribution_major_version == "8"
 
     - name: get postfix user info
       getent:
@@ -61,6 +65,18 @@
           loop_control:
             loop_var: domain
           when: domain.value.aliases | default(False)
+          notify: postmap
+
+        - name: create virtual mailboxes ldap
+          template:
+            dest: "/etc/postfix/db/ldap_{{ ldap.key }}.cf"
+            src: "vmailbox_ldap"
+            owner: root
+            group: root
+            mode: 0755
+          loop: "{{ app.value.postfix.configs.ldap|default({})|dict2items }}"
+          loop_control:
+            loop_var: ldap
           notify: postmap
         - name: copy sasl2/smtpd.conf
           template:

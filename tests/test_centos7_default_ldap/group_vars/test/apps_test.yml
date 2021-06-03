@@ -1,0 +1,28 @@
+apps_postfix:
+  postfix:
+    postfix:
+      enabled: True
+      type: exphost.postfix
+      install: standalone
+      configs:
+        vmailbox:
+          domains:
+            domena1.ru:
+              users:
+                - username: bartek
+                - username: krzys
+                  password: krzyspass
+                  allowed_addresses:
+                    - sales@domena1.ru
+                - username: zosia
+              aliases:
+                - from: krzysiek
+                  to:
+                    - krzys
+                    - wojtek@domena2.ru
+                - to:
+                    - bartek
+            domena2.ru:
+              users:
+                - username: wojtek
+                  password: wojtekpass
