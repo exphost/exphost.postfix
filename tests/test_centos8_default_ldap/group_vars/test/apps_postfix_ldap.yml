@@ -11,10 +11,13 @@ apps_postfix_ssl:
         ldap:
           one:
             host: client.some.example.domain.xyz
-            base: "dc=some,dc=example,dc=domain,dc=xyz"
-            query: "mail=%s"
+            base: "ou=People,dc=some,dc=example,dc=domain,dc=xyz"
+            query_vmailbox: "mail=%s"
+            query_auth: "mail=%u"
             result_attribute: "mail"
             result_format: "%d/%u/"
+            bind_dn: "uid=robert,ou=People,dc=some,dc=example,dc=domain,dc=xyz"
+            bind_pw: "robertpass"
       ssls:
         - domains:
           - ca.some.domain.xyz

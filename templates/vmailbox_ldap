@@ -1,5 +1,5 @@
 server_host = {{ ldap.value.host }}
 search_base = {{ ldap.value.base }}
-query_filter = {{ ldap.value.query }}
+query_filter = {{ ldap.value.query_vmailbox }}
 result_format = {{ ldap.value.result_format }}
 result_attribute = {{ ldap.value.result_attribute }}

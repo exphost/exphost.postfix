@@ -4,6 +4,11 @@
     name: postfix
     state: restarted
   become: true
+- name: restart saslauthd
+  service:
+    name: saslauthd
+    state: restarted
+  become: true
 - name: postmap
   shell: "/usr/sbin/postmap /etc/postfix/db/*.hash"
   become: true
